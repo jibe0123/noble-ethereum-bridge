@@ -1,30 +1,32 @@
-# 🚀 Noble to Ethereum USDC Bridge 🌉
+# Noble to Ethereum USDC Bridge 🌉
 
-Welcome to the Noble to Ethereum USDC Bridge! This project allows users to transfer USDC from the Noble test chain to Ethereum Sepolia testnet seamlessly.
+This project is a user-friendly React application designed to facilitate the transfer of USDC from the Noble test chain to the Ethereum Sepolia testnet. Built with Vite and styled using Tailwind CSS, this app ensures a seamless and efficient bridging process for users.
 
-## 📋 Table of Contents
+## Features ✨
 
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+- **Wallet Connectivity:**
+   - Connect and disconnect Keplr wallet for interacting with the Noble test chain.
+   - Connect and disconnect MetaMask wallet for interacting with the Ethereum Sepolia testnet.
 
-## 📝 Overview
+- **Balance Display:**
+   - View your USDC balance on the Noble chain.
+   - View your ETH and USDC balances on the Sepolia testnet.
 
-This project is a simple React application built with Vite and styled with Tailwind CSS. It enables users to transfer USDC from the Noble test chain to Ethereum Sepolia in two steps:
-1. Burn USDC on the Noble test chain.
-2. Mint USDC on Ethereum Sepolia.
+- **USDC Transfer:**
+   - Burn USDC on the Noble test chain.
+   - Mint USDC on the Ethereum Sepolia testnet.
 
-## ✨ Features
+## How It Works 🛠️
 
-- Connect/Disconnect Keplr wallet
-- View USDC balance on Noble
-- Connect/Disconnect Sepolia wallet (MetaMask)
-- View ETH and USDC balance on Sepolia
+1. **Burn USDC on Noble:**
+   - Enter the amount of USDC to burn and the recipient's address.
+   - Initiate the burn transaction.
 
-## 🛠️ Installation
+2. **Mint USDC on Ethereum:**
+   - Provide the transaction hash from the burn transaction.
+   - Initiate the mint transaction on Sepolia.
+
+## Getting Started 🚀
 
 1. **Clone the repository:**
    ```bash
@@ -42,16 +44,40 @@ This project is a simple React application built with Vite and styled with Tailw
    npm run dev
    ```
 
-## 🚀 Usage
+## Docker Setup 🐳
 
-1. **Connect your wallets:**
-    - Connect your Keplr wallet to interact with the Noble test chain.
-    - Connect your MetaMask wallet to interact with the Sepolia testnet.
+To run the application using Docker and PM2, follow these steps:
 
-2. **Burn USDC on Noble:**
-    - Enter the amount of USDC to burn and the recipient's address.
-    - Click the "Burn" button to initiate the burn transaction on the Noble chain.
+1. **Build the Docker image:**
+   ```bash
+   docker build -t noble-ethereum-bridge .
+   ```
 
-3. **Mint USDC on Ethereum:**
-    - Enter the transaction hash from the burn transaction.
-    - Click the "Mint" button to mint USDC on the Sepolia testnet.
+2. **Run the Docker container:**
+   ```bash
+   docker run -p 3000:3000 noble-ethereum-bridge
+   ```
+
+## Makefile Commands 📜
+
+Use the Makefile for convenient commands:
+
+- **Install dependencies:**
+  ```bash
+  make install
+  ```
+
+- **Run the development server:**
+  ```bash
+  make dev
+  ```
+
+- **Build the Docker image:**
+  ```bash
+  make docker-build
+  ```
+
+- **Run the Docker container:**
+  ```bash
+  make docker-run
+  ```
