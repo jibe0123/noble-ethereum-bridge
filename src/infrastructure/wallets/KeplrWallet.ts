@@ -2,7 +2,8 @@ import WalletRepository from "../../domain/repositories/WalletRepository";
 import {AccountData, ChainInfo} from "@keplr-wallet/types";
 import {GeneratedType, OfflineSigner, Registry} from "@cosmjs/proto-signing";
 import {GasPrice, SigningStargateClient} from "@cosmjs/stargate";
-import {MsgDepositForBurn} from "../../generated/tx";
+import {getMessages} from "../../utils/fetchAttestation.ts";
+import {MsgDepositForBurn} from "../../generated/tx.ts";
 
 export const cctpTypes: ReadonlyArray<[string, GeneratedType]> = [
     ["/circle.cctp.v1.MsgDepositForBurn", MsgDepositForBurn],
@@ -14,14 +15,13 @@ function createDefaultRegistry(): Registry {
 
 function hexToUint8Array(hexString: string): Uint8Array {
     if (hexString.length % 2 !== 0) {
-        throw new Error("Hex string must have an even length");
+        throw new Error("Invalid hexString");
     }
-    const arrayBuffer = new Uint8Array(hexString.length / 2);
+    const byteArray = new Uint8Array(hexString.length / 2);
     for (let i = 0; i < hexString.length; i += 2) {
-        const byteValue = parseInt(hexString.substr(i, 2), 16);
-        arrayBuffer[i / 2] = byteValue;
+        byteArray[i / 2] = parseInt(hexString.substr(i, 2), 16);
     }
-    return arrayBuffer;
+    return byteArray;
 }
 
 const chainInfo: ChainInfo = {
@@ -29,7 +29,7 @@ const chainInfo: ChainInfo = {
     chainName: "Noble Testnet",
     rpc: "https://rpc.testnet.noble.strange.love",
     rest: "https://api.testnet.noble.strange.love",
-    bip44: { coinType: 118 },
+    bip44: {coinType: 118},
     bech32Config: {
         bech32PrefixAccAddr: "noble",
         bech32PrefixAccPub: "noblepub",
@@ -71,7 +71,7 @@ class KeplrWallet implements WalletRepository {
     private client: SigningStargateClient | null = null;
 
     async connect(): Promise<void> {
-        const { keplr } = window;
+        const {keplr} = window;
         if (!keplr) {
             alert("You need to install Keplr");
             return;
@@ -138,37 +138,56 @@ class KeplrWallet implements WalletRepository {
         return result.transactionHash;
     }
 
-    async mint(transactionId: string, attestation: string): Promise<void> {
+    async mintUSDC(txHash: string): Promise<void> {
         if (!this.account || !this.client) throw new Error("Not connected");
+        try {
+            const {messages} = await getMessages(txHash);
+            console.log(messages[0].message.replace("0x", ""))
+            const byteArrayMessage = hexToUint8Array(messages[0].message.replace("0x", ""))
+            const byteArrayAttestion = hexToUint8Array(messages[0].attestation.replace("0x", ""))
 
-        console.log(transactionId)
-        console.log(attestation)
+            const decodedStringMessage = new TextDecoder("utf-8").decode(byteArrayMessage);
+            const decodedStringAttestion = new TextDecoder("utf-8").decode(byteArrayAttestion);
 
-        const messageBytes = hexToUint8Array(transactionId.replace(/^0x/, ''));
-        const attestationBytes = hexToUint8Array(attestation.replace(/^0x/, ''));
+           // const cleanHex = messages[0].message.replace(/^0x/, "");
 
-        const msg = {
-            typeUrl: "/circle.cctp.v1.MsgReceiveMessage",
-            value: {
-                from: this.account.address,
-                message: messageBytes,
-                attestation: attestationBytes,
+            //const messageBytes = new Uint8Array(cleanHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            const messageBytes = new Uint8Array
+
+            console.log(messageBytes)
+
+
+            const msg = {
+                typeUrl: "/circle.cctp.v1.MsgReceiveMessage",
+                value: {
+                    from: this.account.address,
+                    message: decodedStringMessage,
+                    attestation: decodedStringAttestion,
+                }
             }
-        };
 
-        const fee = {
-            amount: [
-                {
-                    denom: "uusdc",
-                    amount: "0",
-                },
-            ],
-            gas: "200000",
-        };
-        const memo = "";
-        const result = await this.client.signAndBroadcast(this.account.address, [msg], fee, memo);
+            const fee = {
+                amount: [
+                    {
+                        denom: "uusdc",
+                        amount: "0",
+                    },
+                ],
+                gas: "200000",
+            };
+            const memo = "";
+            const result = await this.client.signAndBroadcast(
+                this.account.address,
+                [msg],
+                fee,
+                memo
+            );
 
-        console.log(`Minted on Noble: https://mintscan.io/noble-testnet/tx/${result.transactionHash}`);
+            console.log(`Minted on Noble: https://mintscan.io/noble-testnet/tx/${result.transactionHash}`);
+        } catch (error) {
+            console.error('Failed to mint USDC:', error);
+            throw error;
+        }
     }
 }
 

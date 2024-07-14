@@ -1,12 +1,5 @@
-import { Window as KeplrWindow, OfflineSigner } from "@keplr-wallet/types";
+import {Window as KeplrWindow, OfflineSigner, Keplr} from "@keplr-wallet/types";
 import Web3 from "web3";
-
-interface EthereumProvider {
-    isMetaMask?: boolean;
-    request: (...args: any[]) => Promise<any>;
-    on: (event: string, handler: (...args: any[]) => void) => void;
-    removeListener: (event: string, handler: (...args: any[]) => void) => void;
-}
 
 declare global {
     interface Window extends KeplrWindow {

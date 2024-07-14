@@ -1,6 +1,5 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import KeplrWallet from '../infrastructure/wallets/KeplrWallet';
-import {ethers} from "ethers";
 
 interface KeplrWalletContextType {
     wallet: KeplrWallet;
@@ -11,6 +10,7 @@ interface KeplrWalletContextType {
     disconnectWallet: () => void;
     burnUSDC: (amount: number, recipient: string) => Promise<string>;
     mintUSDC: (txHash: string) => Promise<void>;
+
 }
 
 const KeplrWalletContext = createContext<KeplrWalletContextType | undefined>(undefined);
@@ -58,30 +58,16 @@ export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const mintUSDC = async (txHash: string) => {
         try {
-            console.log('txHash: ', txHash);
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send('eth_requestAccounts', []);
-            const signer = await provider.getSigner();
-            const contractAddress = '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD'; // Address of the MessageTransmitter contract on Sepolia
-
-            const abi = [
-                "function receiveMessage(bytes message, bytes attestation) external"
-            ];
-
-            const contract = new ethers.Contract(contractAddress, abi, signer);
-            await contract.on("MessageSent", async (message) => {
-                console.log("Received message:", message);
-            })
-            const tx = await contract.receiveMessage("messageBytes", "attestation");
-
-            await tx.wait();
-            console.log('Minted USDC on Sepolia');
+            if (!wallet.account || !wallet.offlineSigner) {
+                console.error("Wallet is not connected properly");
+                throw new Error("Wallet not connected");
+            }
+            return await wallet.mintUSDC(txHash);
         } catch (error) {
-            console.error('Failed to mint USDC:', error);
+            console.error('Failed to burn USDC:', error);
             throw error;
         }
     };
-
 
     useEffect(() => {
         if (connected && address) {

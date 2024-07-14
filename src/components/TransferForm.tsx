@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
-import { useKeplrWallet } from '../contexts/KeplrWalletContext';
+import React, {ChangeEvent, useState, FocusEvent} from 'react';
+import {useKeplrWallet} from '../contexts/KeplrWalletContext';
 
 const TransferForm: React.FC = () => {
-    const { burnUSDC, mintUSDC } = useKeplrWallet();
-    const [amount, setAmount] = useState<number>(0);
+    const {burnUSDC, mintUSDC} = useKeplrWallet();
+    const [amount, setAmount] = useState<string>("");
     const [recipient, setRecipient] = useState<string>('');
     const [txHash, setTxHash] = useState<string>('');
 
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+
+        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+            setAmount(value);
+        }
+    };
+
+    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+        console.log(event)
+        const value = parseFloat(amount);
+        if (!isNaN(value)) {
+            setAmount(value.toFixed(2));
+        } else {
+            setAmount('');
+        }
+    };
+
     const handleBurnSubmit = async () => {
         try {
-            const txHash = await burnUSDC(amount, recipient);
+            const txHash = await burnUSDC(parseFloat(amount), recipient);
             setTxHash(txHash);
         } catch (error) {
             console.error('Error burning USDC:', error);
@@ -30,10 +48,11 @@ const TransferForm: React.FC = () => {
                 <div>
                     <h2 className='text-xl mb-4'>Burn USDC</h2>
                     <input
-                        type='number'
+                        type='text'
                         value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value))}
-                        placeholder='Amount'
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="Ex : 100.00"
                         className='border rounded p-2 mb-2 w-full'
                     />
                     <input

@@ -1,0 +1,11 @@
+[
+  {
+    "constant": true,
+    "inputs": [{ "name": "address", "type": "address" }],
+    "name": "addressToBytes32",
+    "outputs": [{ "name": "", "type": "bytes32" }],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]

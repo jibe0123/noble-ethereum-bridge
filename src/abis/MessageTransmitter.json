@@ -1,0 +1,14 @@
+[
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "message", "type": "bytes" },
+      { "name": "attestation", "type": "bytes" }
+    ],
+    "name": "receiveMessage",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

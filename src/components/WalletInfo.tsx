@@ -4,7 +4,7 @@ import { useEthereumWallet } from '../contexts/EthereumWalletContext';
 
 const WalletInfo: React.FC = () => {
     const { connected: keplrConnected, address: keplrAddress, balance: keplrBalance, connectWallet: connectKeplr, disconnectWallet: disconnectKeplr } = useKeplrWallet();
-    const { connected: ethConnected, address: ethAddress, balance: ethBalance, usdcBalance: ethUsdcBalance, connectWallet: connectEth, disconnectWallet: disconnectEth } = useEthereumWallet();
+    const { connected: ethConnected, address: ethAddress, ethBalance: ethBalance, usdcBalance: ethUsdcBalance, connectWallet: connectEth, disconnectWallet: disconnectEth } = useEthereumWallet();
 
     return (
         <div className='bg-gray-100 p-4 rounded shadow w-full'>
@@ -13,7 +13,7 @@ const WalletInfo: React.FC = () => {
                     <h2 className='text-xl mb-2'>Keplr Wallet Info</h2>
                     {keplrConnected ? (
                         <>
-                            <p className='truncate'><strong>Address:</strong> {keplrAddress}</p>
+                            <p className='truncate'><strong>Address:<br/></strong> {keplrAddress}</p>
                             <p><strong>Balance:</strong> {keplrBalance} USDC</p>
                             <button className='bg-red-500 text-white px-4 py-2 rounded mt-2 w-full' onClick={disconnectKeplr}>Disconnect</button>
                         </>
@@ -26,7 +26,7 @@ const WalletInfo: React.FC = () => {
                     <h2 className='text-xl mb-2'>Ethereum Wallet Info</h2>
                     {ethConnected ? (
                         <>
-                            <p className='truncate'><strong>Address:</strong> {ethAddress}</p>
+                            <p className='truncate'><strong>Address:<br/></strong> {ethAddress}</p>
                             <p><strong>ETH Balance:</strong> {ethBalance} ETH</p>
                             <p><strong>USDC Balance:</strong> {ethUsdcBalance} USDC</p>
                             <button className='bg-red-500 text-white px-4 py-2 rounded mt-2 w-full' onClick={disconnectEth}>Disconnect</button>

@@ -1,13 +1,14 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
+import Web3 from 'web3';
 
 interface EthereumWalletContextType {
     connected: boolean;
     address: string;
-    balance: number;
-    usdcBalance: number; // Ajout de la balance USDC
+    ethBalance: number;
+    usdcBalance: number;
     connectWallet: () => Promise<void>;
     disconnectWallet: () => void;
+    web3: Web3 | null;
 }
 
 const EthereumWalletContext = createContext<EthereumWalletContextType | undefined>(undefined);
@@ -15,50 +16,65 @@ const EthereumWalletContext = createContext<EthereumWalletContextType | undefine
 export const EthereumWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [connected, setConnected] = useState(false);
     const [address, setAddress] = useState('');
-    const [balance, setBalance] = useState(0);
-    const [usdcBalance, setUsdcBalance] = useState(0); // État pour la balance USDC
+    const [ethBalance, setEthBalance] = useState(0);
+    const [usdcBalance, setUsdcBalance] = useState(0);
+    const [web3, setWeb3] = useState<Web3 | null>(null);
 
     const connectWallet = async () => {
         if (!window.ethereum) {
             console.error('MetaMask is not installed');
             return;
         }
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send('eth_requestAccounts', []);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        console.log("Account:", address);
-        setAddress(address);
-        setConnected(true);
-        const balance = await provider.getBalance(address);
-        console.log(balance)
-        setBalance(Number(ethers.formatEther(balance)));
 
-        // Récupérer la balance USDC
-        const usdcContractAddress = '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238'; // Adresse du contrat USDC sur Sepolia
-        const usdcAbi = [
-            "function balanceOf(address owner) view returns (uint256)"
-        ];
-        const usdcContract = new ethers.Contract(usdcContractAddress, usdcAbi, provider);
-        const usdcBalance = await usdcContract.balanceOf(address);
-        setUsdcBalance(Number(ethers.formatUnits(usdcBalance, 6))); // USDC a 6 décimales
+        const web3Instance = new Web3(window.ethereum);
+        setWeb3(web3Instance);
+
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await web3Instance.eth.getAccounts();
+            const account = accounts[0];
+            setAddress(account);
+            setConnected(true);
+
+            const balanceInWei = await web3Instance.eth.getBalance(account);
+            const balanceInEth = web3Instance.utils.fromWei(balanceInWei, 'ether');
+            setEthBalance(parseFloat(balanceInEth));
+
+
+            // Retrieve USDC balance
+            const usdcContractAddress = '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238'; // USDC contract address on Sepolia
+            const usdcAbi = [
+                {
+                    "constant": true,
+                    "inputs": [{ "name": "owner", "type": "address" }],
+                    "name": "balanceOf",
+                    "outputs": [{ "name": "balance", "type": "uint256" }],
+                    "type": "function"
+                }
+            ];
+            const usdcContract = new web3Instance.eth.Contract(usdcAbi, usdcContractAddress);
+            const usdcBalanceInWei = await usdcContract.methods.balanceOf(account).call();
+
+            if (usdcBalanceInWei) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                setUsdcBalance(parseFloat(Web3.utils.fromWei(usdcBalanceInWei, 'mwei'))); // USDC has 6 decimals
+            }
+        } catch (error) {
+            console.error('Failed to connect wallet:', error);
+        }
     };
 
     const disconnectWallet = () => {
         setConnected(false);
         setAddress('');
-        setBalance(0);
-        setUsdcBalance(0); // Réinitialiser la balance USDC
+        setEthBalance(0);
+        setUsdcBalance(0);
+        setWeb3(null);
     };
 
-    useEffect(() => {
-        if (connected && address) {
-            // Fetch balance when connected and address changes
-        }
-    }, [connected, address]);
-
     return (
-        <EthereumWalletContext.Provider value={{ connected, address, balance, usdcBalance, connectWallet, disconnectWallet }}>
+        <EthereumWalletContext.Provider value={{ connected, address, ethBalance, usdcBalance, connectWallet, disconnectWallet, web3 }}>
             {children}
         </EthereumWalletContext.Provider>
     );
