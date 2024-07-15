@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useState, FocusEvent} from 'react';
+import React, {ChangeEvent, useState} from 'react';
 import {useKeplrWallet} from '../contexts/KeplrWalletContext';
 
 const TransferForm: React.FC = () => {
@@ -15,8 +15,7 @@ const TransferForm: React.FC = () => {
         }
     };
 
-    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
-        console.log(event)
+    const handleBlur = () => {
         const value = parseFloat(amount);
         if (!isNaN(value)) {
             setAmount(value.toFixed(2));

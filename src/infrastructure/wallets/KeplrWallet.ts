@@ -2,8 +2,9 @@ import WalletRepository from "../../domain/repositories/WalletRepository";
 import {AccountData, ChainInfo} from "@keplr-wallet/types";
 import {GeneratedType, OfflineSigner, Registry} from "@cosmjs/proto-signing";
 import {GasPrice, SigningStargateClient} from "@cosmjs/stargate";
+import {MsgDepositForBurn} from "../../generated/tx";
 import {getMessages} from "../../utils/fetchAttestation.ts";
-import {MsgDepositForBurn} from "../../generated/tx.ts";
+
 
 export const cctpTypes: ReadonlyArray<[string, GeneratedType]> = [
     ["/circle.cctp.v1.MsgDepositForBurn", MsgDepositForBurn],
@@ -71,7 +72,7 @@ class KeplrWallet implements WalletRepository {
     private client: SigningStargateClient | null = null;
 
     async connect(): Promise<void> {
-        const {keplr} = window;
+        const { keplr } = window;
         if (!keplr) {
             alert("You need to install Keplr");
             return;
@@ -86,11 +87,15 @@ class KeplrWallet implements WalletRepository {
         this.account = accounts[0];
         console.log("Connected account:", this.account); // Log the account
 
-        // Initialize the client once
-        this.client = await SigningStargateClient.connectWithSigner(this.rpcUrl, this.offlineSigner, {
-            registry: createDefaultRegistry(),
-            gasPrice: GasPrice.fromString("0.025uusdc"),
-        });
+        try {
+            this.client = await SigningStargateClient.connectWithSigner(this.rpcUrl, this.offlineSigner, {
+                registry: createDefaultRegistry(),
+                gasPrice: GasPrice.fromString("0.025uusdc"),
+            });
+            console.log(this.client);
+        } catch (error) {
+            console.error("An error occurred while initializing the client:", error);
+        }
     }
 
     async getBalance(): Promise<number> {
@@ -116,7 +121,7 @@ class KeplrWallet implements WalletRepository {
             value: {
                 from: this.account.address,
                 amount: (amount * 1000000).toString(), // amount in uusdc
-                destinationDomain: 0, // Utilisez 4 pour Noble, 0 pour Ethereum
+                destinationDomain: 0, // 0 For ethereum
                 mintRecipient: mintRecipientBytes,
                 burnToken: "uusdc",
             },
@@ -141,28 +146,19 @@ class KeplrWallet implements WalletRepository {
     async mintUSDC(txHash: string): Promise<void> {
         if (!this.account || !this.client) throw new Error("Not connected");
         try {
+            // Convert the message and attestation from hex to bytes
             const {messages} = await getMessages(txHash);
+            console.log("coucou")
             console.log(messages[0].message.replace("0x", ""))
-            const byteArrayMessage = hexToUint8Array(messages[0].message.replace("0x", ""))
-            const byteArrayAttestion = hexToUint8Array(messages[0].attestation.replace("0x", ""))
 
-            const decodedStringMessage = new TextDecoder("utf-8").decode(byteArrayMessage);
-            const decodedStringAttestion = new TextDecoder("utf-8").decode(byteArrayAttestion);
-
-           // const cleanHex = messages[0].message.replace(/^0x/, "");
-
-            //const messageBytes = new Uint8Array(cleanHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-            const messageBytes = new Uint8Array
-
-            console.log(messageBytes)
 
 
             const msg = {
                 typeUrl: "/circle.cctp.v1.MsgReceiveMessage",
                 value: {
                     from: this.account.address,
-                    message: decodedStringMessage,
-                    attestation: decodedStringAttestion,
+                    message: "decodedStringMessage",
+                    attestation: "decodedStringAttestion",
                 }
             }
 

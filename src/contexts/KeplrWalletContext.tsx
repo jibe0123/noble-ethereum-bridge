@@ -1,5 +1,6 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import KeplrWallet from '../infrastructure/wallets/KeplrWallet';
+import {useNotification} from "./NotificationContext.tsx";
 
 interface KeplrWalletContextType {
     wallet: KeplrWallet;
@@ -10,15 +11,15 @@ interface KeplrWalletContextType {
     disconnectWallet: () => void;
     burnUSDC: (amount: number, recipient: string) => Promise<string>;
     mintUSDC: (txHash: string) => Promise<void>;
-
 }
 
 const KeplrWalletContext = createContext<KeplrWalletContextType | undefined>(undefined);
 
-export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [connected, setConnected] = useState(false);
     const [address, setAddress] = useState('');
     const [balance, setBalance] = useState(0);
+    const {showSuccess, showError} = useNotification();
 
     const [wallet] = useState(new KeplrWallet());
 
@@ -30,9 +31,11 @@ export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
                 setConnected(true);
                 const balance = await wallet.getBalance();
                 setBalance(balance);
-                console.log("Wallet connected:", wallet.account.address); // Log the connected address
+                console.log("Wallet connected:", wallet.account.address);
+                showSuccess("Wallet connected successfully. 🎉");
             }
         } catch (error) {
+            showError('Failed to connect to Keplr Wallet');
             console.error('Failed to connect to Keplr Wallet:', error);
         }
     };
@@ -41,16 +44,21 @@ export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         setConnected(false);
         setAddress('');
         setBalance(0);
+        showSuccess('Wallet disconnected successfully.');
     };
 
     const burnUSDC = async (amount: number, recipient: string) => {
         try {
             if (!wallet.account || !wallet.offlineSigner) {
                 console.error("Wallet is not connected properly");
+                showError('Wallet not connected');
                 throw new Error("Wallet not connected");
             }
-            return await wallet.burnUSDC(amount, recipient);
+            const result = await wallet.burnUSDC(amount, recipient);
+            showSuccess('USDC burned successfully. 🔥');
+            return result;
         } catch (error) {
+            showError('Failed to burn USDC');
             console.error('Failed to burn USDC:', error);
             throw error;
         }
@@ -60,11 +68,14 @@ export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         try {
             if (!wallet.account || !wallet.offlineSigner) {
                 console.error("Wallet is not connected properly");
+                showError('Wallet not connected');
                 throw new Error("Wallet not connected");
             }
-            return await wallet.mintUSDC(txHash);
+            await wallet.mintUSDC(txHash);
+            showSuccess('USDC minted successfully. 💰');
         } catch (error) {
-            console.error('Failed to burn USDC:', error);
+            showError('Failed to mint USDC');
+            console.error('Failed to mint USDC:', error);
             throw error;
         }
     };
@@ -76,7 +87,8 @@ export const KeplrWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, [connected, address, wallet]);
 
     return (
-        <KeplrWalletContext.Provider value={{ wallet, connected, address, balance, connectWallet, disconnectWallet, burnUSDC, mintUSDC }}>
+        <KeplrWalletContext.Provider
+            value={{wallet, connected, address, balance, connectWallet, disconnectWallet, burnUSDC, mintUSDC}}>
             {children}
         </KeplrWalletContext.Provider>
     );

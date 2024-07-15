@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import Web3 from 'web3';
+import { useNotification } from './NotificationContext';
 
 interface EthereumWalletContextType {
     connected: boolean;
@@ -19,10 +20,12 @@ export const EthereumWalletProvider: React.FC<{ children: ReactNode }> = ({ chil
     const [ethBalance, setEthBalance] = useState(0);
     const [usdcBalance, setUsdcBalance] = useState(0);
     const [web3, setWeb3] = useState<Web3 | null>(null);
+    const { showSuccess, showError } = useNotification();
 
     const connectWallet = async () => {
         if (!window.ethereum) {
             console.error('MetaMask is not installed');
+            showError('MetaMask is not installed');
             return;
         }
 
@@ -39,7 +42,6 @@ export const EthereumWalletProvider: React.FC<{ children: ReactNode }> = ({ chil
             const balanceInWei = await web3Instance.eth.getBalance(account);
             const balanceInEth = web3Instance.utils.fromWei(balanceInWei, 'ether');
             setEthBalance(parseFloat(balanceInEth));
-
 
             // Retrieve USDC balance
             const usdcContractAddress = '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238'; // USDC contract address on Sepolia
@@ -60,8 +62,10 @@ export const EthereumWalletProvider: React.FC<{ children: ReactNode }> = ({ chil
                 // @ts-expect-error
                 setUsdcBalance(parseFloat(Web3.utils.fromWei(usdcBalanceInWei, 'mwei'))); // USDC has 6 decimals
             }
+            showSuccess('Wallet connected successfully. 🎉');
         } catch (error) {
             console.error('Failed to connect wallet:', error);
+            showError('Failed to connect wallet');
         }
     };
 
@@ -71,6 +75,7 @@ export const EthereumWalletProvider: React.FC<{ children: ReactNode }> = ({ chil
         setEthBalance(0);
         setUsdcBalance(0);
         setWeb3(null);
+        showSuccess('Wallet disconnected successfully.');
     };
 
     return (
