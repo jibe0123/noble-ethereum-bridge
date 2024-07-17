@@ -148,9 +148,7 @@ class KeplrWallet implements WalletRepository {
         try {
             // Convert the message and attestation from hex to bytes
             const {messages} = await getMessages(txHash);
-            console.log("coucou")
             console.log(messages[0].message.replace("0x", ""))
-
 
 
             const msg = {

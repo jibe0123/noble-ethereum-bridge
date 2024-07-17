@@ -1,9 +1,10 @@
 import axios from 'axios';
+import {Attestation} from "../domain/entities/Attestation.ts";
 
 const IRIS_MESSAGES_API_URL = 'https://iris-api-sandbox.circle.com/messages/4/';
 
 interface MessageResponse {
-    attestation: string;
+    attestation: Attestation;
     message: string;
     eventNonce: string;
 }
