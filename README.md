@@ -55,7 +55,7 @@ To run the application using Docker and PM2, follow these steps:
 
 2. **Run the Docker container:**
    ```bash
-   docker run -p 3000:3000 noble-ethereum-bridge
+   docker run -p 5173:5173 noble-ethereum-bridge
    ```
 
 ## Makefile Commands 📜

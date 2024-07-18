@@ -1,3 +1,3 @@
 export interface Attestation {
-    attestation: string;
+  attestation: string;
 }

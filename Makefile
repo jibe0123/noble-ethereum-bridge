@@ -14,4 +14,4 @@ docker-build:
 
 # Run Docker container
 docker-run:
-	docker run -p 3000:3000 noble-ethereum-bridge
+	docker run -p 5173:5173 noble-ethereum-bridge

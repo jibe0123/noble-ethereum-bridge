@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:18
+FROM node:22-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN npm install -g pm2
 
 # Expose the port the app runs on
-EXPOSE 3000
+EXPOSE 5173
 
 # Start the application with PM2
 CMD ["pm2-runtime", "start", "npm", "--", "run", "dev"]
